@@ -5,6 +5,7 @@
 #include "display.h"
 #include "draw.h"
 #include "matrix.h"
+#include "math.h"
 
 /*======== void add_circle() ==========
   Inputs:   struct matrix * points
@@ -18,6 +19,18 @@
 void add_circle( struct matrix * points, 
 		 double cx, double cy, double cz,
 		 double r, double step ) {
+  double t = 0;
+  double x = r * cos (2 * M_PI * t) + cx;
+  double y = r * sin (2 * M_PI * t) + cy;
+  double last_x = r * cos (2 * M_PI * (1 - (1 / step))) + cx;
+  double last_y = r * sin (2 * M_PI * (1 - (1 / step))) + cy;
+  for (t = 1 / step; t < 1.001; t += 1 / step){
+    add_edge(points, last_x, last_y, 0, x, y, 0);
+    last_x = x;
+    last_y = y;
+    x = r * cos (2 * M_PI * t) + cx;
+    y = r * sin (2 * M_PI * t) + cy;
+  }
 }
 
 /*======== void add_curve() ==========
