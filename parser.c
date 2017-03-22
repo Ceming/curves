@@ -82,87 +82,107 @@ void parse_file ( char * filename,
     struct matrix *tmp;
     double theta;
     char axis;
-    
-    if ( strncmp(line, "line", strlen(line)) == 0 ) {
-      fgets(line, sizeof(line), f);
-      //printf("LINE\t%s", line);
 
-      sscanf(line, "%lf %lf %lf %lf %lf %lf",
-	     xvals, yvals, zvals,
-	     xvals+1, yvals+1, zvals+1);
+    double radius;
+    
+    if (strncmp(line, "circle", strlen(line)) == 0) {
+      fgets(line, sizeof(line), f);
+      sscanf(line, "%lf %lf %lf %lf", xvals, yvals, zvals, &radius);
+      add_circle(edges, xvals[0], yvals[0], zvals[0], radius, 50);
+    }
+
+    else if ( strncmp(line, "hermite", strlen(line)) == 0 ) {
+      fgets(line, sizeof(line), f);
+      sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf", xvals, yvals, xvals+1, yvals+1, xvals+2, yvals+2, xvals+3, yvals+3);
+      add_curve(edges, xvals[0], yvals[0], xvals[1], yvals[1], xvals[2], yvals[2], xvals[3], yvals[3], 1000, HERMITE);
+    }
+  
+  else if ( strncmp(line, "bezier", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    sscanf(line, "%lf %lf %lf %lf %lf %lf %lf %lf", xvals, yvals, xvals+1, yvals+1, xvals+2, yvals+2, xvals+3, yvals+3);
+    add_curve(edges, xvals[0], yvals[0], xvals[1], yvals[1], xvals[2], yvals[2], xvals[3], yvals[3], 1000, BEZIER);
+  }
+  
+  else if ( strncmp(line, "line", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    //printf("LINE\t%s", line);
+    
+    sscanf(line, "%lf %lf %lf %lf %lf %lf",
+	   xvals, yvals, zvals,
+	   xvals+1, yvals+1, zvals+1);
       /*printf("%lf %lf %lf %lf %lf %lf",
-	     xvals[0], yvals[0], zvals[0],
-	     xvals[1], yvals[1], zvals[1]) */
-      add_edge(edges, xvals[0], yvals[0], zvals[0],
-	       xvals[1], yvals[1], zvals[1]);      
-    }//end line
-
-    else if ( strncmp(line, "scale", strlen(line)) == 0 ) {
-      fgets(line, sizeof(line), f);
-      //printf("SCALE\t%s", line);
-      sscanf(line, "%lf %lf %lf",
-	     xvals, yvals, zvals);
-      /* printf("%lf %lf %lf\n", */
-      /* 	xvals[0], yvals[0], zvals[0]); */ 
-      tmp = make_scale( xvals[0], yvals[0], zvals[0]);
-      matrix_mult(tmp, transform);
-    }//end scale
-
-    else if ( strncmp(line, "move", strlen(line)) == 0 ) {
-      fgets(line, sizeof(line), f);
-      //printf("MOVE\t%s", line);
-      sscanf(line, "%lf %lf %lf",
-	     xvals, yvals, zvals);
-      /* printf("%lf %lf %lf\n", */
-      /* 	xvals[0], yvals[0], zvals[0]); */ 
-      tmp = make_translate( xvals[0], yvals[0], zvals[0]);
-      matrix_mult(tmp, transform);
-    }//end translate
-
-    else if ( strncmp(line, "rotate", strlen(line)) == 0 ) {
-      fgets(line, sizeof(line), f);
-      //printf("Rotate\t%s", line);
-      sscanf(line, "%c %lf",
-	     &axis, &theta);      
-      /* printf("%c %lf\n", */
-      /* 	axis, theta); */
-      theta = theta * (M_PI / 180);
-      if ( axis == 'x' )
-	tmp = make_rotX( theta );
-      else if ( axis == 'y' )
-	tmp = make_rotY( theta );
-      else 
-	tmp = make_rotZ( theta );
-      
-      matrix_mult(tmp, transform);
+	xvals[0], yvals[0], zvals[0],
+	xvals[1], yvals[1], zvals[1]) */
+    add_edge(edges, xvals[0], yvals[0], zvals[0],
+	     xvals[1], yvals[1], zvals[1]);      
+  }//end line
+  
+  else if ( strncmp(line, "scale", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    //printf("SCALE\t%s", line);
+    sscanf(line, "%lf %lf %lf",
+	   xvals, yvals, zvals);
+    /* printf("%lf %lf %lf\n", */
+    /* 	xvals[0], yvals[0], zvals[0]); */ 
+    tmp = make_scale( xvals[0], yvals[0], zvals[0]);
+    matrix_mult(tmp, transform);
+  }//end scale
+  
+  else if ( strncmp(line, "move", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    //printf("MOVE\t%s", line);
+    sscanf(line, "%lf %lf %lf",
+	   xvals, yvals, zvals);
+    /* printf("%lf %lf %lf\n", */
+    /* 	xvals[0], yvals[0], zvals[0]); */ 
+    tmp = make_translate( xvals[0], yvals[0], zvals[0]);
+    matrix_mult(tmp, transform);
+  }//end translate
+  
+  else if ( strncmp(line, "rotate", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    //printf("Rotate\t%s", line);
+    sscanf(line, "%c %lf",
+	   &axis, &theta);      
+    /* printf("%c %lf\n", */
+    /* 	axis, theta); */
+    theta = theta * (M_PI / 180);
+    if ( axis == 'x' )
+      tmp = make_rotX( theta );
+    else if ( axis == 'y' )
+      tmp = make_rotY( theta );
+    else 
+      tmp = make_rotZ( theta );
+    
+    matrix_mult(tmp, transform);
     }//end rotate
-
-    else if ( strncmp(line, "ident", strlen(line)) == 0 ) {
-      //printf("IDENT\t%s", line);
-      ident(transform);
-    }//end ident
+  
+  else if ( strncmp(line, "ident", strlen(line)) == 0 ) {
+    //printf("IDENT\t%s", line);
+    ident(transform);
+  }//end ident
+  
+  else if ( strncmp(line, "apply", strlen(line)) == 0 ) {
+    //printf("APPLY\t%s", line);
+    matrix_mult(transform, edges);
+  }//end apply
+  
+  else if ( strncmp(line, "display", strlen(line)) == 0 ) {
+    //printf("DISPLAY\t%s", line);
+    clear_screen(s);
+    draw_lines(edges, s, c);
+    display( s );
+  }//end display
     
-    else if ( strncmp(line, "apply", strlen(line)) == 0 ) {
-      //printf("APPLY\t%s", line);
-      matrix_mult(transform, edges);
-    }//end apply
-    
-    else if ( strncmp(line, "display", strlen(line)) == 0 ) {
-      //printf("DISPLAY\t%s", line);
-      clear_screen(s);
-      draw_lines(edges, s, c);
-      display( s );
-    }//end display
-    
-    else if ( strncmp(line, "save", strlen(line)) == 0 ) {
-      fgets(line, sizeof(line), f);
-      *strchr(line, '\n') = 0;
-      //printf("SAVE\t%s\n", line);
-      clear_screen(s);
-      draw_lines(edges, s, c);
-      save_extension(s, line);
-    }//end save
-
-    
+  else if ( strncmp(line, "save", strlen(line)) == 0 ) {
+    fgets(line, sizeof(line), f);
+    *strchr(line, '\n') = 0;
+    printf("SAVE\t%s\n", line);
+    clear_screen(s);
+    draw_lines(edges, s, c);
+    save_extension(s, line);
+  }//end save
+  
   }
 }
+
